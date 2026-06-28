@@ -8,10 +8,16 @@ import tempfile
 import threading
 import time
 import tkinter as tk
+import webbrowser
 from tkinter import messagebox, simpledialog, ttk
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# ---- 作者信息（本工具原创作者，请勿删除署名）----
+AUTHOR_NAME = "1285452862"
+BILIBILI_URL = "https://space.bilibili.com/352671558"
+GITHUB_URL = "https://github.com/hdrtfhyrs/local-job-assistant"
 
 
 def resolve_python_exe():
@@ -208,11 +214,21 @@ class JobAssistantApp(tk.Tk):
 
         footer = tk.Frame(body, bg=SIDEBAR_BG)
         footer.pack(fill=tk.X, padx=18, pady=16)
-        tk.Label(footer, text="当前项目", bg=SIDEBAR_BG, fg=MUTED, font=("Microsoft YaHei UI", 9)).pack(anchor=tk.W)
-        tk.Label(footer, text="boss_scraper", bg=SIDEBAR_BG, fg=TEXT, font=("Microsoft YaHei UI", 10, "bold")).pack(anchor=tk.W, pady=(3, 0))
+        tk.Label(footer, text="本工具作者（原创）", bg=SIDEBAR_BG, fg=MUTED,
+                 font=("Microsoft YaHei UI", 9)).pack(anchor=tk.W)
+        tk.Label(footer, text="B站 @" + AUTHOR_NAME, bg=SIDEBAR_BG, fg=TEXT,
+                 font=("Microsoft YaHei UI", 10, "bold")).pack(anchor=tk.W, pady=(3, 0))
+        self._footer_link(footer, "▶ 我的 B 站主页", BILIBILI_URL)
+        self._footer_link(footer, "★ GitHub 开源地址", GITHUB_URL)
         self._adv_footer = footer
         self._adv_canvas = canvas
         canvas.after(150, lambda: canvas.yview_moveto(0))
+
+    def _footer_link(self, parent, text, url):
+        lbl = tk.Label(parent, text=text, bg=SIDEBAR_BG, fg=ACCENT, cursor="hand2",
+                       font=("Microsoft YaHei UI", 9, "underline"))
+        lbl.pack(anchor=tk.W, pady=(4, 0))
+        lbl.bind("<Button-1>", lambda e: webbrowser.open(url))
 
     def _build_advanced(self, p):
         self._sidebar_section("分步流程（手动）", parent=p)

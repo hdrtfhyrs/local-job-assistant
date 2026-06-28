@@ -18,7 +18,11 @@ try:
 except Exception:
     pass
 
-BASE = os.path.dirname(os.path.abspath(__file__))
+# 打包成 exe 后 __file__ 在临时目录，要用 exe 所在目录
+if getattr(sys, "frozen", False):
+    BASE = os.path.dirname(os.path.abspath(sys.executable))
+else:
+    BASE = os.path.dirname(os.path.abspath(__file__))
 BUNDLE = os.path.join(BASE, "bundle")
 RUNTIME = os.path.join(BASE, "runtime")
 PY_RUNTIME = os.path.join(RUNTIME, "Scripts", "python.exe")
@@ -37,10 +41,43 @@ def run(cmd, **kw):
     return subprocess.run(cmd, **kw)
 
 
+def real_python():
+    """找一个真实的 Python 解释器(用来建 venv)。打包成 exe 后 sys.executable 是 exe 本身，不能用。"""
+    if not getattr(sys, "frozen", False):
+        return sys.executable
+    for name in ("py", "python"):
+        p = shutil.which(name)
+        if p:
+            return p
+    return None
+
+
+def ensure_python():
+    """没装 Python 就用包里自带的安装器装。返回可用的 python 路径。"""
+    py = real_python()
+    if py:
+        return py
+    setup = None
+    import glob
+    cand = glob.glob(os.path.join(BUNDLE, "python-*.exe"))
+    if cand:
+        setup = cand[0]
+    if setup:
+        print("    没检测到 Python，正在用自带安装包静默安装……")
+        run([setup, "/quiet", "InstallAllUsers=0", "PrependPath=1", "Include_pip=1"], check=False)
+    else:
+        print("    ⚠️ 没找到 Python 也没有自带安装包，请先装 Python(python.org)。")
+    return real_python()
+
+
 def ensure_runtime():
     step(1, "创建运行环境并离线安装依赖……")
+    py = ensure_python()
+    if not py:
+        print("    ❌ 没有可用的 Python，无法建运行环境。")
+        return
     if not os.path.exists(PY_RUNTIME):
-        run([sys.executable, "-m", "venv", RUNTIME], check=False)
+        run([py, "-m", "venv", RUNTIME], check=False)
     pip = [PY_RUNTIME, "-m", "pip"]
     wheels = os.path.join(BUNDLE, "wheels")
     req = os.path.join(BASE, "requirements.txt")
@@ -146,7 +183,25 @@ def make_shortcut():
         print(f"    ⚠️ 建快捷方式失败：{e}（可手动双击 启动求职助手.bat）")
 
 
+def self_check():
+    print("=" * 56)
+    print("  安装器自检（不实际安装）")
+    print("=" * 56)
+    print(f"  运行模式: {'打包exe' if getattr(sys,'frozen',False) else '脚本'}")
+    print(f"  安装目录 BASE: {BASE}")
+    print(f"  bundle 存在: {os.path.isdir(BUNDLE)}")
+    if os.path.isdir(BUNDLE):
+        for sub in ("python-3.12.7-amd64.exe", "OllamaSetup.exe", "wheels", "models"):
+            print(f"    - {sub}: {'有' if os.path.exists(os.path.join(BUNDLE, sub)) else '无'}")
+    print(f"  找到真实 Python: {real_python() or '无(将用自带安装器)'}")
+    print(f"  requirements.txt: {os.path.exists(os.path.join(BASE, 'requirements.txt'))}")
+    print("  ✅ 自检完成（路径解析正常即说明 exe 能找对位置）")
+
+
 def main():
+    if "--check" in sys.argv:
+        self_check()
+        return
     print("=" * 56)
     print("  求职助手 · 离线一键安装")
     print("=" * 56)

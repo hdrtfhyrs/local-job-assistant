@@ -60,6 +60,8 @@ input:focus,select:focus { border-color:#1f3864; }
 .go { margin-top:auto; text-align:center; background:#1f3864; color:#fff; text-decoration:none; padding:9px; border-radius:6px; font-size:14px; font-weight:600; }
 .go:hover { background:#16305a; }
 .empty { text-align:center; color:#86909c; padding:60px; grid-column:1/-1; }
+.foot { text-align:center; color:#86909c; font-size:13px; margin:26px 0 10px; line-height:1.9; }
+.foot a { color:#1f3864; text-decoration:none; font-weight:600; } .foot a:hover { text-decoration:underline; }
 </style>
 </head>
 <body>
@@ -81,6 +83,7 @@ input:focus,select:focus { border-color:#1f3864; }
 <div class="group" style="flex:1"><input id="search" placeholder="搜岗位名 / 公司…" style="width:100%"></div>
 </div>
 <div class="grid" id="grid"></div>
+<div class="foot">本工具由 B站 <b>@__AUTHOR__</b> 原创开发 · <a href="__BILI__" target="_blank" rel="noopener">▶ B站主页</a> · <a href="__GH__" target="_blank" rel="noopener">★ GitHub 开源</a></div>
 </div>
 <script>
 const DATA = __DATA__;
@@ -147,7 +150,11 @@ def main():
         except Exception:
             pass
     title = f"{city}岗位推荐"
-    html = TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False)).replace("__TITLE__", title)
+    html = (TEMPLATE.replace("__DATA__", json.dumps(data, ensure_ascii=False))
+            .replace("__TITLE__", title)
+            .replace("__AUTHOR__", "1285452862")
+            .replace("__BILI__", "https://space.bilibili.com/352671558")
+            .replace("__GH__", "https://github.com/hdrtfhyrs/local-job-assistant"))
     out = os.path.join(os.path.expanduser("~"), "Desktop", "求职推荐_网页版.html")
     with open(out, "w", encoding="utf-8") as fp:
         fp.write(html)

@@ -11,6 +11,14 @@ import tkinter as tk
 import webbrowser
 from tkinter import messagebox, simpledialog, ttk
 
+try:
+    import customtkinter as ctk
+    ctk.set_appearance_mode("light")
+    ctk.set_default_color_theme("blue")
+    HAS_CTK = True
+except Exception:
+    HAS_CTK = False
+
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -55,19 +63,23 @@ STATUS_ITEMS = [
 
 DEFAULT_KEYWORDS = "软件实施工程师,技术支持工程师,IT运维工程师,陶瓷电商运营助理,数据助理"
 
-APP_BG = "#f6efe9"
-SIDEBAR_BG = "#f3ebe5"
-SIDEBAR_ACTIVE = "#e8ded7"
-SIDEBAR_HOVER = "#eee5df"
-CONTENT_BG = "#fffdfb"
+APP_BG = "#1e2230"
+# 深色侧边栏
+SIDEBAR_BG = "#1e2230"
+SIDEBAR_ACTIVE = "#2c3447"
+SIDEBAR_HOVER = "#272e40"
+SIDEBAR_TEXT = "#e7eaf2"
+SIDEBAR_MUTED = "#8a92a6"
+# 浅色内容区
+CONTENT_BG = "#f4f6fa"
 CARD_BG = "#ffffff"
-BORDER = "#e2ddd7"
-TEXT = "#2c2621"
-MUTED = "#7a716a"
-PRIMARY = "#2563eb"
-PRIMARY_DARK = "#1d4ed8"
-ACCENT = "#0f766e"
-WARNING = "#c2410c"
+BORDER = "#e6e9ef"
+TEXT = "#1b2233"
+MUTED = "#6b7385"
+PRIMARY = "#4f6ef2"
+PRIMARY_DARK = "#3f5ad6"
+ACCENT = "#5b7cfa"
+WARNING = "#e0701f"
 OK = "#15803d"
 
 
@@ -137,21 +149,21 @@ class JobAssistantApp(tk.Tk):
             gripcount=0,
             width=8,
             troughcolor=CONTENT_BG,
-            background="#d8d2cc",
+            background="#c3c9d6",
             bordercolor=CONTENT_BG,
-            lightcolor="#d8d2cc",
-            darkcolor="#d8d2cc",
-            arrowcolor="#d8d2cc",
+            lightcolor="#c3c9d6",
+            darkcolor="#c3c9d6",
+            arrowcolor="#c3c9d6",
             relief=tk.FLAT,
         )
         style.map(
             "Clean.Vertical.TScrollbar",
-            background=[("active", "#c8c1bb"), ("pressed", "#b8b0aa")],
-            arrowcolor=[("active", "#c8c1bb"), ("pressed", "#b8b0aa")],
+            background=[("active", "#a9b1c2"), ("pressed", "#939cb0")],
+            arrowcolor=[("active", "#a9b1c2"), ("pressed", "#939cb0")],
         )
         style.configure(
             "Execution.Horizontal.TProgressbar",
-            troughcolor="#f4f0eb",
+            troughcolor="#e6e9ef",
             background=PRIMARY,
             bordercolor=BORDER,
             lightcolor=PRIMARY,
@@ -189,8 +201,8 @@ class JobAssistantApp(tk.Tk):
 
         top = tk.Frame(body, bg=SIDEBAR_BG)
         top.pack(fill=tk.X, padx=18, pady=(18, 12))
-        tk.Label(top, text="求职工作台", bg=SIDEBAR_BG, fg=TEXT, font=("Microsoft YaHei UI", 15, "bold")).pack(anchor=tk.W)
-        tk.Label(top, text="本地流程助手", bg=SIDEBAR_BG, fg=MUTED, font=("Microsoft YaHei UI", 9)).pack(anchor=tk.W, pady=(3, 0))
+        tk.Label(top, text="求职工作台", bg=SIDEBAR_BG, fg=SIDEBAR_TEXT, font=("Microsoft YaHei UI", 15, "bold")).pack(anchor=tk.W)
+        tk.Label(top, text="本地 AI 求职助手", bg=SIDEBAR_BG, fg=SIDEBAR_MUTED, font=("Microsoft YaHei UI", 9)).pack(anchor=tk.W, pady=(3, 0))
 
         # ---- 常用（日常就这几个）----
         self._sidebar_section("常用")
@@ -205,7 +217,7 @@ class JobAssistantApp(tk.Tk):
         self.adv_toggle = tk.Button(
             body, text="⚙  分步 / 高级 / 文件      ▶", command=self._toggle_advanced,
             anchor="w", relief=tk.FLAT, bd=0, padx=16, pady=9,
-            bg=SIDEBAR_BG, fg=MUTED, activebackground=SIDEBAR_HOVER, activeforeground=TEXT,
+            bg=SIDEBAR_BG, fg=SIDEBAR_MUTED, activebackground=SIDEBAR_HOVER, activeforeground=SIDEBAR_TEXT,
             font=("Microsoft YaHei UI", 10), cursor="hand2",
         )
         self.adv_toggle.pack(fill=tk.X, padx=10, pady=(16, 1))
@@ -214,9 +226,9 @@ class JobAssistantApp(tk.Tk):
 
         footer = tk.Frame(body, bg=SIDEBAR_BG)
         footer.pack(fill=tk.X, padx=18, pady=16)
-        tk.Label(footer, text="本工具作者（原创）", bg=SIDEBAR_BG, fg=MUTED,
+        tk.Label(footer, text="本工具作者（原创）", bg=SIDEBAR_BG, fg=SIDEBAR_MUTED,
                  font=("Microsoft YaHei UI", 9)).pack(anchor=tk.W)
-        tk.Label(footer, text="B站 @" + AUTHOR_NAME, bg=SIDEBAR_BG, fg=TEXT,
+        tk.Label(footer, text="B站 @" + AUTHOR_NAME, bg=SIDEBAR_BG, fg=SIDEBAR_TEXT,
                  font=("Microsoft YaHei UI", 10, "bold")).pack(anchor=tk.W, pady=(3, 0))
         self._footer_link(footer, "▶ 我的 B 站主页", BILIBILI_URL)
         self._footer_link(footer, "★ GitHub 开源地址", GITHUB_URL)
@@ -272,30 +284,33 @@ class JobAssistantApp(tk.Tk):
             parent or self.sidebar_body,
             text=title,
             bg=SIDEBAR_BG,
-            fg="#9a8f87",
+            fg=SIDEBAR_MUTED,
             font=("Microsoft YaHei UI", 9, "bold"),
         ).pack(anchor=tk.W, padx=18, pady=(14, 6))
 
     def _sidebar_button(self, text, command, managed=False, active=False, accent=False, parent=None):
-        bg = SIDEBAR_ACTIVE if active else SIDEBAR_BG
-        fg = ACCENT if accent else TEXT
-        button = tk.Button(
-            parent or self.sidebar_body,
-            text=text,
-            command=command,
-            anchor="w",
-            relief=tk.FLAT,
-            bd=0,
-            padx=16,
-            pady=9,
-            bg=bg,
-            fg=fg,
-            activebackground=SIDEBAR_HOVER,
-            activeforeground=fg,
-            font=("Microsoft YaHei UI", 10, "bold" if active or accent else "normal"),
-            cursor="hand2",
-        )
-        button.pack(fill=tk.X, padx=10, pady=1)
+        master = parent or self.sidebar_body
+        if HAS_CTK:
+            fg_color = ACCENT if accent else (SIDEBAR_ACTIVE if active else "transparent")
+            hover = PRIMARY_DARK if accent else SIDEBAR_HOVER
+            text_color = "#ffffff" if accent else SIDEBAR_TEXT
+            button = ctk.CTkButton(
+                master, text="  " + text, command=command, anchor="w",
+                height=40, corner_radius=9, bg_color=SIDEBAR_BG,
+                fg_color=fg_color, hover_color=hover, text_color=text_color,
+                font=ctk.CTkFont("Microsoft YaHei UI", 13, weight="bold" if (active or accent) else "normal"),
+            )
+            button.pack(fill=tk.X, padx=10, pady=3)
+        else:
+            bg = SIDEBAR_ACTIVE if active else SIDEBAR_BG
+            fg = ACCENT if accent else SIDEBAR_TEXT
+            button = tk.Button(
+                master, text=text, command=command, anchor="w", relief=tk.FLAT, bd=0,
+                padx=16, pady=9, bg=bg, fg=fg, activebackground=SIDEBAR_HOVER,
+                activeforeground=fg, cursor="hand2",
+                font=("Microsoft YaHei UI", 10, "bold" if active or accent else "normal"),
+            )
+            button.pack(fill=tk.X, padx=10, pady=1)
         if managed:
             self.task_buttons.append(button)
         return button
@@ -393,6 +408,12 @@ class JobAssistantApp(tk.Tk):
         self.task_pill = label
 
     def _card(self, parent, padx=16, pady=14):
+        if HAS_CTK:
+            outer = ctk.CTkFrame(parent, fg_color=CARD_BG, corner_radius=12,
+                                 border_width=1, border_color=BORDER)
+            inner = tk.Frame(outer, bg=CARD_BG)
+            inner.pack(fill=tk.BOTH, expand=True, padx=padx + 2, pady=pady + 2)
+            return outer, inner
         outer = tk.Frame(parent, bg=BORDER)
         inner = tk.Frame(outer, bg=CARD_BG)
         inner.pack(fill=tk.BOTH, expand=True, padx=1, pady=1)
@@ -461,18 +482,7 @@ class JobAssistantApp(tk.Tk):
         header = tk.Frame(card, bg=CARD_BG)
         header.pack(fill=tk.X, pady=(0, 8))
         tk.Label(header, text="流程状态", bg=CARD_BG, fg=TEXT, font=("Microsoft YaHei UI", 12, "bold")).pack(side=tk.LEFT)
-        tk.Button(
-            header,
-            text="刷新状态",
-            command=self.refresh_status,
-            relief=tk.FLAT,
-            bg="#f5f2ef",
-            fg=TEXT,
-            padx=12,
-            pady=6,
-            activebackground="#ece7e2",
-            cursor="hand2",
-        ).pack(side=tk.RIGHT)
+        self._small_button(header, "刷新状态", self.refresh_status).pack(side=tk.RIGHT)
 
         grid = tk.Frame(card, bg=CARD_BG)
         grid.pack(fill=tk.X)
@@ -609,19 +619,16 @@ class JobAssistantApp(tk.Tk):
         self.log("提示：②之后请在弹出的 Chrome 里登录 BOSS、过验证码（软件不会绕过验证）。")
 
     def _small_button(self, parent, text, command):
+        if HAS_CTK:
+            return ctk.CTkButton(
+                parent, text=text, command=command, height=30, corner_radius=8,
+                fg_color="#eef1f6", hover_color="#e0e4ec", text_color=TEXT,
+                font=ctk.CTkFont("Microsoft YaHei UI", 12),
+            )
         return tk.Button(
-            parent,
-            text=text,
-            command=command,
-            relief=tk.FLAT,
-            bd=0,
-            bg="#f5f2ef",
-            fg=TEXT,
-            activebackground="#ece7e2",
-            padx=12,
-            pady=6,
-            cursor="hand2",
-            font=("Microsoft YaHei UI", 9),
+            parent, text=text, command=command, relief=tk.FLAT, bd=0,
+            bg="#f5f2ef", fg=TEXT, activebackground="#ece7e2",
+            padx=12, pady=6, cursor="hand2", font=("Microsoft YaHei UI", 9),
         )
 
     def _int_value(self, var, default, minimum=None):
@@ -1611,8 +1618,84 @@ class JobAssistantApp(tk.Tk):
                 "--avoid", data["avoid"], "--salary", data["salary"]]
         self.run_command(args, "生成个性化画像")
 
+    PROFILE_FIELDS = [
+        ("city", "你在哪个城市？", "景德镇", "如：景德镇"),
+        ("education", "最高学历", "本科", "如：本科 / 大专 / 高中"),
+        ("background", "一句话背景（专业 / 会什么技能）", "", "如：本科软件工程毕业，会装机/网络/基础编程"),
+        ("targets", "想做哪些方向（空格隔开）", "", "如：电商运营 数据助理 直播运营 IT运维"),
+        ("avoid", "不接受什么（可留空）", "", "如：长期出差 / 驻场"),
+        ("salary_floor_k", "薪资底线（K）", "3.5", "如：3.5（月薪下限，单位千元）"),
+    ]
+
+    @staticmethod
+    def _norm_profile_vals(v):
+        sal = v.get("salary_floor_k", "3.5")
+        try:
+            float(sal)
+        except (ValueError, TypeError):
+            sal = "3.5"
+        return {"city": v.get("city", ""), "education": v.get("education", ""),
+                "background": v.get("background", ""), "targets": v.get("targets", ""),
+                "avoid": v.get("avoid", ""), "salary": sal}
+
     def _profile_form(self, cur):
-        """一个完整的设置窗口：所有项一次填，确定/取消固定底部。返回 dict 或 None。"""
+        """个性化设置窗口（CustomTkinter 现代版；没装 ctk 则用经典版）。返回 dict 或 None。"""
+        if not HAS_CTK:
+            return self._profile_form_tk(cur)
+        f = lambda *a, **k: ctk.CTkFont("Microsoft YaHei UI", *a, **k)
+        win = ctk.CTkToplevel(self)
+        win.title("个性化设置")
+        win.geometry("560x660")
+        win.transient(self)
+        win.resizable(False, False)
+        result = {"ok": False, "vals": {}}
+
+        ctk.CTkLabel(win, text="个性化设置", font=f(20, weight="bold")).pack(anchor="w", padx=26, pady=(22, 0))
+        ctk.CTkLabel(win, text="填一次，系统就按你的情况自动配置（搜什么岗、跳过哪些不对口的）。会计/设计/运营都适用。",
+                     font=f(12), text_color="#6b7385", wraplength=500, justify="left").pack(anchor="w", padx=26, pady=(4, 6))
+
+        bar = ctk.CTkFrame(win, fg_color="transparent")
+        bar.pack(side="bottom", fill="x", padx=26, pady=(10, 20))
+        sf = ctk.CTkScrollableFrame(win, fg_color="transparent")
+        sf.pack(side="top", fill="both", expand=True, padx=14)
+
+        entries = {}
+        for key, label, default, ph in self.PROFILE_FIELDS:
+            ctk.CTkLabel(sf, text=label, font=f(13, weight="bold")).pack(anchor="w", padx=8, pady=(12, 4))
+            e = ctk.CTkEntry(sf, height=40, corner_radius=8, placeholder_text=ph, font=f(13))
+            e.pack(fill="x", padx=8)
+            val = cur.get(key, default)
+            if val not in (None, ""):
+                e.insert(0, str(val))
+            entries[key] = e
+
+        def on_ok():
+            result["vals"] = self._norm_profile_vals({k: entries[k].get().strip() for k in entries})
+            result["ok"] = True
+            win.destroy()
+
+        ctk.CTkButton(bar, text="确定生成", command=on_ok, width=130, height=42,
+                      corner_radius=10, font=f(14, weight="bold")).pack(side="right")
+        ctk.CTkButton(bar, text="取消", command=win.destroy, width=92, height=42, corner_radius=10,
+                      fg_color="#e5e7eb", text_color="#1b2233", hover_color="#d6d9df",
+                      font=f(13)).pack(side="right", padx=(0, 10))
+
+        win.update_idletasks()
+        px, py, pw, ph = self.winfo_rootx(), self.winfo_rooty(), self.winfo_width(), self.winfo_height()
+        win.geometry(f"560x660+{px + (pw - 560) // 2}+{py + max(0, (ph - 660) // 2)}")
+        win.after(120, lambda: (win.lift(), win.focus_force(), self._safe_grab(win)))
+        self.wait_window(win)
+        return result["vals"] if result["ok"] else None
+
+    @staticmethod
+    def _safe_grab(win):
+        try:
+            win.grab_set()
+        except Exception:
+            pass
+
+    def _profile_form_tk(self, cur):
+        """经典 Tkinter 版设置窗口（无 customtkinter 时的兜底）。"""
         win = tk.Toplevel(self)
         win.title("个性化设置 · 填一次（之后随时可改）")
         win.configure(bg=CARD_BG)

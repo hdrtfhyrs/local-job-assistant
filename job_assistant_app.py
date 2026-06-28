@@ -233,7 +233,8 @@ class JobAssistantApp(tk.Tk):
     def _build_advanced(self, p):
         self._sidebar_section("分步流程（手动）", parent=p)
         self._sidebar_button("①  AI 帮我选方向", self.career_advice, managed=True, parent=p)
-        self._sidebar_button("③  开始抓岗位", self.scrape_jobs, managed=True, parent=p)
+        self._sidebar_button("③  开始抓岗位（单平台）", self.scrape_jobs, managed=True, parent=p)
+        self._sidebar_button("🌐  全平台抓岗位(BOSS+51job+智联)", self.scrape_all_platforms, managed=True, parent=p)
         self._sidebar_button("④  AI 筛选并出推荐表", self.one_click_filter, managed=True, parent=p)
         self._sidebar_button("🔍  投递预演（不真发）", self.auto_apply_dry, managed=True, parent=p)
         self._sidebar_button("🚀  仅投递（不爬取）", self.auto_apply, managed=True, parent=p)
@@ -1622,6 +1623,17 @@ class JobAssistantApp(tk.Tk):
                 "--background", bg or "", "--targets", tg or "",
                 "--avoid", av or "", "--salary", sal]
         self.run_command(args, "生成个性化画像")
+
+    def scrape_all_platforms(self):
+        city = self.city_var.get().strip() or "景德镇"
+        keywords = self.get_keywords()
+        if not keywords:
+            messagebox.showinfo("缺关键词", "请先在中间的关键词框里填岗位关键词。")
+            return
+        pages = str(self._int_value(self.pages_var, 2, 1))
+        self.log("全平台抓取：BOSS+51job+智联 依次抓→合并成一张表。每个平台需在弹出的 Chrome 里各自登录。")
+        self.run_command([PYTHON_EXE, "全平台抓取.py", "--city", city, "--keywords", keywords,
+                          "--platforms", "boss,51job,zhaopin", "--pages", pages], "全平台抓取")
 
     # ---------------- 一键全自动 ----------------
     def run_all(self):

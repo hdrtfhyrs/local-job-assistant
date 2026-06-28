@@ -45,6 +45,7 @@ DEFAULT_CONFIG = {
         "陶瓷电商运营助理", "跨境电商运营", "新媒体运营",
         "数据助理", "数据标注", "客户成功专员", "产品助理",
     ],
+    "platforms": "boss,51job,zhaopin",  # 抓哪些平台(可加 liepin,lagou)
     "max_pages": 3,         # 每个关键词翻几页（页多=岗位多但慢，也更易触发验证）
     "daily_apply_cap": 200, # 今天最多自动投多少（设高=投到BOSS拦/岗位投完为止）
     "do_apply": True,       # 是否自动投递（False=只爬+出表+出网页，不投）
@@ -209,11 +210,13 @@ def main():
         log("流程中止（Chrome 未就绪 / 未登录）。")
         return
 
-    # 1. 爬岗位（无人值守用 --yes）
-    run_step("① 爬取岗位", [
-        "boss_scraper.py", "--city", city, "--max-pages", pages,
-        "--max-details", "0", "--skip-reputation", "--yes",
-        "--keywords", keywords, "--no-strict-match", "--fast",
+    # 1. 爬岗位（多平台一起抓，合并成一张全平台表）
+    platforms = cfg.get("platforms", "boss,51job,zhaopin")
+    if isinstance(platforms, list):
+        platforms = ",".join(platforms)
+    run_step("① 全平台爬取岗位", [
+        "全平台抓取.py", "--city", city, "--keywords", keywords,
+        "--platforms", platforms, "--pages", pages,
     ])
 
     # 2. 规则筛选 → 生成待精排候选

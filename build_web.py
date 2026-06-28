@@ -53,6 +53,7 @@ input:focus,select:focus { border-color:#1f3864; }
 .b-no { background:#ffece8; color:#f53f3f; }
 .b-loc { background:#f2f3f5; color:#4e5969; }
 .b-active { background:#e8fffb; color:#0aa6a2; }
+.b-plat { background:#1f3864; color:#fff; }
 .company { font-size:13px; color:#4e5969; margin-bottom:8px; }
 .reason { font-size:13px; color:#1d8c4d; background:#f0faf4; padding:7px 10px; border-radius:6px; margin-bottom:6px; line-height:1.5; }
 .risk { font-size:13px; color:#cb6a14; background:#fff7e8; padding:7px 10px; border-radius:6px; margin-bottom:10px; line-height:1.5; }
@@ -108,11 +109,14 @@ function render(){
     const risk=d["风险提醒"]?'<div class="risk">⚠ '+esc(d["风险提醒"])+'</div>':"";
     const tB = t==="成长型"?'<span class="bdg b-grow">成长型</span>':t==="轻松型"?'<span class="bdg b-easy">轻松型</span>':"";
     const act = d["活跃度"]?'<span class="bdg b-active">'+esc(d["活跃度"])+'</span>':"";
+    const plat = d["平台"]?'<span class="bdg b-plat">'+esc(d["平台"])+'</span>':"";
+    const isBoss = /zhipin\.com/.test(link);
+    const btnText = isBoss ? "查看岗位 / 立即沟通 →" : "去该平台投递 →";
     return '<div class="card"><div class="top"><div class="jt">'+esc(d["岗位名称"])+'</div><div class="sal">'+esc(d["薪资范围"]||"面议")+'</div></div>'+
-      '<div class="badges">'+tB+'<span class="bdg '+verdClass(v)+'">'+esc(v)+'</span><span class="bdg b-loc">'+esc(d["工作地点"]||"")+'</span>'+act+'</div>'+
+      '<div class="badges">'+plat+tB+'<span class="bdg '+verdClass(v)+'">'+esc(v)+'</span><span class="bdg b-loc">'+esc(d["工作地点"]||"")+'</span>'+act+'</div>'+
       '<div class="company">'+esc(d["公司名称"]||"")+' · '+esc(d["经验要求"]||"经验不限")+' · '+esc(d["学历要求"]||"")+'</div>'+
       reason+risk+'<div class="meta">推荐分 '+esc(d["精排分"]||d["规则分"]||"")+'</div>'+
-      (link?'<a class="go" href="'+esc(link)+'" target="_blank" rel="noopener">查看岗位 / 立即沟通 →</a>':'')+'</div>';
+      (link?'<a class="go" href="'+esc(link)+'" target="_blank" rel="noopener">'+btnText+'</a>':'')+'</div>';
   }).join("");
 }
 function renderStats(){

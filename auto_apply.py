@@ -274,12 +274,16 @@ def build_candidates(jobs, records, cfg):
     applied_ids = {r.get("job_id") for r in records}
     skip_titles = cfg.get("skip_title_keywords", [])
     cands = []
-    skipped = {"已投过": 0, "无链接": 0, "门槛不够": 0, "踩坑": 0, "专业不对口": 0}
+    skipped = {"已投过": 0, "无链接": 0, "非BOSS手动投": 0, "门槛不够": 0, "踩坑": 0, "专业不对口": 0}
     for job in jobs:
         link = job.get("岗位链接") or job.get("链接") or ""
         jid = job_id_of(link)
         if not jid:
             skipped["无链接"] += 1
+            continue
+        # 自动投递只支持 BOSS；其它平台(51job/智联等)的岗位跳过，留给用户手动投
+        if "zhipin.com" not in str(link):
+            skipped["非BOSS手动投"] += 1
             continue
         if jid in applied_ids:
             skipped["已投过"] += 1

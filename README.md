@@ -1,6 +1,14 @@
 # 本地求职助手（爬取 + 本地AI精排 + 自动投递）
 
+![platform](https://img.shields.io/badge/platform-Windows-0078D6)
+![python](https://img.shields.io/badge/Python-3.12-3776AB)
+![AI](https://img.shields.io/badge/AI-Ollama%20%2B%20Qwen3-7b3ff2)
+![license](https://img.shields.io/badge/license-MIT-green)
+![stars](https://img.shields.io/github/stars/hdrtfhyrs/local-job-assistant?style=social)
+
 > **原创作者**：B站 [@1285452862](https://space.bilibili.com/352671558) ｜ 视频教程与更新都在 B 站，欢迎关注。转载/二次分发请保留署名。
+
+> 📦 **懒人直接下整包**（含模型、免下载、双击 `安装.exe`）：[夸克网盘](https://pan.quark.cn/s/97cc55746ee7)（提取码 **YCLQ**）｜ 想看代码就往下翻。
 
 一个面向**城市求职**的本地化求职自动化工具：从招聘网站爬岗位 → 本地大模型按你的背景智能精排 → 一键生成可筛选的网页视图 → 按"专业是否对口"自动投递 → 后台监控 HR 回信。**全程本地运行、数据不出本机**，AI 用本机 Ollama，不需要任何付费 API。
 

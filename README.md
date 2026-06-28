@@ -25,7 +25,7 @@
 **方式二：离线整包（推荐给非技术用户）**
 把模型/Ollama/Python 一并打好的 ~6GB 离线包，对方双击 `一键安装.bat` 即可、无需任何下载。
 - 自己制作：开着代理运行 `python 制作离线包.py`，产物在 `D:\求职助手离线包`，整个文件夹用网盘/U盘分发。
-- 离线包下载（作者发布）：**在此粘贴你的网盘链接**
+- 离线包下载（夸克网盘）：https://pan.quark.cn/s/97cc55746ee7 　提取码：**YCLQ**
 
 ## 🧩 技术栈
 Python · [DrissionPage](https://github.com/g1879/DrissionPage)（接管真实 Chrome 抓取/投递）· Ollama + Qwen3（本地 LLM 精排与对口核查）· Tkinter GUI · openpyxl/pandas。

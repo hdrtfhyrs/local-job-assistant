@@ -1,0 +1,31 @@
+# 个人隐私 / 登录凭据（绝不上传）
+cookie.txt
+user_profile.json
+投递记录.json
+投递配置.json
+回信快照.json
+回信记录.xlsx
+自动运行配置.json
+自动运行日志.txt
+
+# 运行产物
+*.xlsx
+analysis_inbox/
+推荐方向_联网研究版.md
+求职方向参谋_*.md
+
+# 环境 / 构建产物（体积大，不上传；安装器会自动装）
+venv/
+venv*/
+runtime/
+bundle/
+dist/
+release/
+__pycache__/
+*.pyc
+
+# 系统
+.idea/
+.vscode/
+Thumbs.db
+.DS_Store

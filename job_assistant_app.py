@@ -1601,28 +1601,83 @@ class JobAssistantApp(tk.Tk):
             except Exception:
                 cur = {}
 
-        def ask(label, key, default):
-            return simpledialog.askstring("个性化设置", label,
-                                          initialvalue=str(cur.get(key, default)), parent=self)
-
-        city = ask("你在哪个城市？", "city", "景德镇")
-        if city is None:
+        data = self._profile_form(cur)
+        if data is None:
             return
-        edu = ask("最高学历？（如 本科/大专）", "education", "本科")
-        bg = ask("一句话背景（专业/会什么技能）：", "background", "")
-        tg = ask("想做哪些方向？空格隔开\n（如：电商运营 数据助理 行政）", "targets", "")
-        av = ask("有什么不接受？（如：长期出差）", "avoid", "")
-        sal = ask("薪资底线（K，如 3.5）：", "salary_floor_k", "3.5")
-        try:
-            float(sal)
-        except (TypeError, ValueError):
-            sal = "3.5"
         self.log("正在根据你的资料生成个性化投递规则（搜哪些岗位、跳过哪些不对口的）……")
         args = [PYTHON_EXE, "profile_engine.py",
-                "--city", city or "景德镇", "--edu", edu or "本科",
-                "--background", bg or "", "--targets", tg or "",
-                "--avoid", av or "", "--salary", sal]
+                "--city", data["city"] or "景德镇", "--edu", data["education"] or "本科",
+                "--background", data["background"], "--targets", data["targets"],
+                "--avoid", data["avoid"], "--salary", data["salary"]]
         self.run_command(args, "生成个性化画像")
+
+    def _profile_form(self, cur):
+        """一个完整的设置窗口：所有项一次填，确定/取消固定底部。返回 dict 或 None。"""
+        win = tk.Toplevel(self)
+        win.title("个性化设置 · 填一次（之后随时可改）")
+        win.configure(bg=CARD_BG)
+        win.transient(self)
+        win.resizable(False, False)
+        result = {"ok": False, "vals": {}}
+
+        # 底部按钮先放，固定在底部（防止被内容挤出）
+        btnbar = tk.Frame(win, bg=CARD_BG)
+        btnbar.pack(side=tk.BOTTOM, fill=tk.X, padx=22, pady=(6, 16))
+        body = tk.Frame(win, bg=CARD_BG)
+        body.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=24, pady=(18, 2))
+
+        tk.Label(body, text="填一次，系统就按你的情况自动配置（搜什么岗、跳过哪些不对口的）。会计/设计/运营都适用。",
+                 bg=CARD_BG, fg=MUTED, font=("Microsoft YaHei UI", 9),
+                 wraplength=470, justify="left").pack(anchor=tk.W, pady=(0, 8))
+
+        entries = {}
+        fields = [
+            ("city", "你在哪个城市？", "景德镇", "如：景德镇"),
+            ("education", "最高学历", "本科", "如：本科 / 大专 / 高中"),
+            ("background", "一句话背景（专业 / 会什么技能）", "", "如：本科软件工程毕业，会装机/网络/基础编程"),
+            ("targets", "想做哪些方向（空格隔开）", "", "如：电商运营 数据助理 直播运营 IT运维"),
+            ("avoid", "不接受什么（可留空）", "", "如：长期出差 / 驻场"),
+            ("salary_floor_k", "薪资底线（K）", "3.5", "如：3.5（月薪下限，单位千元）"),
+        ]
+        for key, label, default, ph in fields:
+            tk.Label(body, text=label, bg=CARD_BG, fg=TEXT,
+                     font=("Microsoft YaHei UI", 10, "bold")).pack(anchor=tk.W, pady=(9, 2))
+            e = tk.Entry(body, font=("Microsoft YaHei UI", 11), relief=tk.SOLID, bd=1)
+            e.pack(anchor=tk.W, fill=tk.X, ipady=5)
+            val = cur.get(key, default)
+            e.insert(0, "" if val is None else str(val))
+            tk.Label(body, text=ph, bg=CARD_BG, fg=MUTED,
+                     font=("Microsoft YaHei UI", 8)).pack(anchor=tk.W, pady=(1, 0))
+            entries[key] = e
+
+        def on_ok():
+            v = {k: entries[k].get().strip() for k in entries}
+            sal = v.get("salary_floor_k", "3.5")
+            try:
+                float(sal)
+            except ValueError:
+                sal = "3.5"
+            result["ok"] = True
+            result["vals"] = {"city": v["city"], "education": v["education"],
+                              "background": v["background"], "targets": v["targets"],
+                              "avoid": v["avoid"], "salary": sal}
+            win.destroy()
+
+        tk.Button(btnbar, text="取消", command=win.destroy, width=9, relief=tk.FLAT,
+                  bg="#e9eaee", fg=TEXT, activebackground="#dcdde1", cursor="hand2",
+                  font=("Microsoft YaHei UI", 10)).pack(side=tk.RIGHT)
+        tk.Button(btnbar, text="确定生成", command=on_ok, width=12, relief=tk.FLAT,
+                  bg=ACCENT, fg="#ffffff", activebackground=ACCENT, cursor="hand2",
+                  font=("Microsoft YaHei UI", 10, "bold")).pack(side=tk.RIGHT, padx=(0, 10))
+
+        win.update_idletasks()
+        w, h = win.winfo_width(), win.winfo_height()
+        px, py, pw, ph = self.winfo_rootx(), self.winfo_rooty(), self.winfo_width(), self.winfo_height()
+        win.geometry(f"{max(w, 520)}x{h}+{px + (pw - w) // 2}+{py + (ph - h) // 2}")
+        win.grab_set()
+        entries["city"].focus_set()
+        self.wait_window(win)
+        return result["vals"] if result["ok"] else None
 
     def scrape_all_platforms(self):
         city = self.city_var.get().strip() or "景德镇"

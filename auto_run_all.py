@@ -32,6 +32,13 @@ except Exception:
     pass
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, BASE_DIR)
+
+try:
+    from notify import notify
+except Exception:
+    def notify(title, msg):
+        pass
 PY = sys.executable  # 由 venv312 的 python 启动本脚本，子进程沿用
 CONFIG_PATH = os.path.join(BASE_DIR, "自动运行配置.json")
 LOG_PATH = os.path.join(BASE_DIR, "自动运行日志.txt")
@@ -168,12 +175,16 @@ def run_step(title, args):
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             text=True, encoding="utf-8", errors="replace", env=env,
         )
+        # 子步骤输出也写进日志文件——后台定时跑时报错才查得到
         for line in proc.stdout:
             line = line.rstrip()
             if line:
-                print("    " + line, flush=True)
+                log("    " + line)
         code = proc.wait()
-        log(f"  {title} 结束（退出码 {code}）")
+        if code == 0:
+            log(f"  {title} 完成 ✅")
+        else:
+            log(f"  ⚠️ {title} 失败（退出码 {code}），具体报错看上面几行")
         return code == 0
     except Exception as e:
         log(f"  {title} 失败：{e}")
@@ -208,40 +219,53 @@ def main():
     page = ensure_chrome_and_login()
     if page is None:
         log("流程中止（Chrome 未就绪 / 未登录）。")
+        notify("求职助手：BOSS 登录过期", "今天的自动流程停了。去桌面那个调试 Chrome 扫码登录，再重跑一次「求职全自动」。")
         return
+
+    results = []
+
+    def step(title, args):
+        results.append((title, run_step(title, args)))
 
     # 1. 爬岗位（多平台一起抓，合并成一张全平台表）
     platforms = cfg.get("platforms", "boss,51job,zhaopin")
     if isinstance(platforms, list):
         platforms = ",".join(platforms)
-    run_step("① 全平台爬取岗位", [
+    step("① 全平台爬取岗位", [
         "全平台抓取.py", "--city", city, "--keywords", keywords,
         "--platforms", platforms, "--pages", pages,
     ])
 
     # 2. 规则筛选 → 生成待精排候选
-    run_step("② 规则筛选", ["job_matcher.py", "--top", "25"])
+    step("② 规则筛选", ["job_matcher.py", "--top", "25"])
 
     # 3. 本地 AI 精排（Ollama）
-    run_step("③ 本地AI精排", ["local_ai_matcher.py", "--backend", "ollama"])
+    step("③ 本地AI精排", ["local_ai_matcher.py", "--backend", "ollama"])
 
     # 4. 生成最终推荐表
-    run_step("④ 生成推荐表", ["merge_analysis.py"])
+    step("④ 生成推荐表", ["merge_analysis.py"])
 
     # 5. 生成网页视图
-    run_step("⑤ 生成网页视图", ["build_web.py"])
+    step("⑤ 生成网页视图", ["build_web.py"])
 
     # 6. 自动投递
     if cfg.get("do_apply", True):
-        run_step("⑥ 自动投递", ["auto_apply.py", "--max", str(cfg["daily_apply_cap"])])
+        step("⑥ 自动投递", ["auto_apply.py", "--max", str(cfg["daily_apply_cap"])])
     else:
         log("（配置 do_apply=false，跳过自动投递）")
 
     # 7. 检查回信
-    run_step("⑦ 检查回信", ["reply_monitor.py"])
+    step("⑦ 检查回信", ["reply_monitor.py"])
 
+    failed = [t for t, ok in results if not ok]
     log("=" * 50)
-    log("✅ 一条龙全自动 全部跑完！")
+    if failed:
+        log(f"⚠️ 流程跑完，但有 {len(failed)} 步失败：{'、'.join(failed)}")
+        log("   失败原因已记录在本日志里，翻到对应步骤即可看到报错。")
+        notify("求职助手：今天有步骤失败", "、".join(failed) + "。详情看 自动运行日志.txt")
+    else:
+        log("✅ 一条龙全自动 全部跑完！")
+        notify("求职助手：今天跑完了 ✅", "推荐网页和回信记录都已更新。")
     log("   推荐网页：桌面\\求职推荐_网页版.html")
     log("   回信记录：回信记录.xlsx")
     log("=" * 50)
